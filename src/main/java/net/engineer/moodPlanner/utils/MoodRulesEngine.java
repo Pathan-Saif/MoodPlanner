@@ -9,6 +9,7 @@ import net.engineer.moodPlanner.model.User;
 import java.util.ArrayList;
 import java.util.List;
 
+
 public class MoodRulesEngine {
 
     public static List<Task> generateSchedule(User user) {
@@ -56,4 +57,11 @@ public class MoodRulesEngine {
 
         return tasks;
     }
+
+    public static List<Task> generateSchedule(String mood) {
+        User temp = new User();
+        temp.setMood(mood);
+        return generateSchedule(temp);
+    }
+
 }

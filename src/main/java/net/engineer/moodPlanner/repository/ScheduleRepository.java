@@ -9,6 +9,7 @@ import java.util.List;
 @Component
 public interface ScheduleRepository  extends MongoRepository<Schedule, String> {
     List<Schedule> findByUsername(String username);
+    void deleteByUsername(String username);
 
 //    void deleteByUserId(String userId);
 //    void findByUserName(String userName);

@@ -1,6 +1,7 @@
 package net.engineer.moodPlanner.controller;
 
 import net.engineer.moodPlanner.dto.AuthDtos;
+import net.engineer.moodPlanner.model.User;
 import net.engineer.moodPlanner.security.JwtUtil;
 import net.engineer.moodPlanner.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,5 +36,20 @@ public class AuthController {
     public ResponseEntity<String> me() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         return ResponseEntity.ok(auth.getName());
+    }
+
+    @DeleteMapping("/delete")
+    public ResponseEntity<String> deleteMyAccount(@RequestHeader("Authorization") String token) {
+
+        String username = jwtUtil.extractUsername(token.substring(7));
+
+        User user = authService.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        authService.deleteAllSchedulesForUser(username);
+
+        authService.deleteUser(user);
+
+        return ResponseEntity.ok("Your account and all related data have been permanently deleted.");
     }
 }
