@@ -98,7 +98,7 @@ public class AdminController {
     @PutMapping("/schedules/{id}")
     public ResponseEntity<Schedule> updateSchedule(@PathVariable String id, @RequestBody Schedule scheduleDetails) {
         return scheduleRepository.findById(id).map(schedule -> {
-            schedule.setUsername(scheduleDetails.getUsername());
+            schedule.setUserId(scheduleDetails.getUserId());
             schedule.setMood(scheduleDetails.getMood());
             schedule.setTasks(scheduleDetails.getTasks());
             return ResponseEntity.ok(scheduleRepository.save(schedule));

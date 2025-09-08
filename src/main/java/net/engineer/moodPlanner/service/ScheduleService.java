@@ -20,42 +20,50 @@ public class ScheduleService {
         List<Task> tasks = MoodRulesEngine.generateSchedule(user);
 
         Schedule schedule = new Schedule();
-        schedule.setUsername(user.getUserName());
+        schedule.setUserId(user.getId());
         schedule.setMood(user.getMood());
+        schedule.setOccupation(user.getOccupation());
+        schedule.setGender(user.getGender());
+        schedule.setAgeGroup(user.getAgeGroup());
+        schedule.setWorkTime(user.getWorkTime());
         schedule.setTasks(tasks);
 
         return scheduleRepository.save(schedule);
     }
 
-    public List<Schedule> getSchedulesForUser(String username) {
-        return scheduleRepository.findByUsername(username);
+    public List<Schedule> getSchedulesForUser(String userId) {
+        return scheduleRepository.findByUserId(userId);
     }
 
-    public Schedule getScheduleByIdForUser(String id, String username) {
+    public Schedule getScheduleByIdForUser(String id, String userId) {
         return scheduleRepository.findById(id)
-                .filter(s -> s.getUsername().equals(username))
+                .filter(s -> s.getUserId().equals(userId))
                 .orElseThrow(() -> new RuntimeException("Schedule not found"));
     }
 
     public Schedule updateScheduleByIdForUser(String id, User user) {
-        Schedule existing = getScheduleByIdForUser(id, user.getUserName());
+        Schedule existing = getScheduleByIdForUser(id, user.getId());
         List<Task> tasks = MoodRulesEngine.generateSchedule(user);
         existing.setMood(user.getMood());
         existing.setTasks(tasks);
+        existing.setOccupation(user.getOccupation());
+        existing.setGender(user.getGender());
+        existing.setAgeGroup(user.getAgeGroup());
+        existing.setWorkTime(user.getWorkTime());
         return scheduleRepository.save(existing);
     }
 
-    public boolean deleteScheduleByIdForUser(String id, String username) {
+    public boolean deleteScheduleByIdForUser(String id, String userId) {
         Optional<Schedule> opt = scheduleRepository.findById(id);
-        if (opt.isPresent() && opt.get().getUsername().equals(username)) {
+        if (opt.isPresent() && opt.get().getUserId().equals(userId)) {
             scheduleRepository.deleteById(id);
             return true;
         }
         return false;
     }
 
-    public void deleteAllSchedulesForUser(String username) {
-        scheduleRepository.deleteByUsername(username);
+    public void deleteAllSchedulesForUser(String userId) {
+        scheduleRepository.deleteByUserId(userId);
     }
 
 }

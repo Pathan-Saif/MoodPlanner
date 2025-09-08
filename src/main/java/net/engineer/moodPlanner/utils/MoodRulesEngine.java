@@ -1,67 +1,527 @@
+//package net.engineer.moodPlanner.utils;
+//
+//import lombok.AllArgsConstructor;
+//import lombok.Builder;
+//import lombok.Data;
+//import lombok.NoArgsConstructor;
+//import net.engineer.moodPlanner.model.Task;
+//import net.engineer.moodPlanner.model.User;
+//
+//import java.util.ArrayList;
+//import java.util.List;
+//import java.util.Random;
+//
+//public class MoodRulesEngine {
+//
+//    public static List<Task> generateSchedule(User user) {
+//        String mood = user.getMood();
+//        if(mood == null) mood = "neutral";
+//
+//        String occupation = user.getOccupation();
+//        String ageGroup = user.getAgeGroup();
+//        String gender = user.getGender();
+//        String workTime = user.getWorkTime();
+//
+//        List<Task> tasks = new ArrayList<>();
+//        Random random = new Random();
+//
+//        // Base tasks based on mood
+//        switch (mood.toLowerCase()) {
+//            case "happy":
+//                tasks.add(new Task("Start your day with positive affirmations", "7:00 AM - 7:15 AM"));
+//                tasks.add(new Task("Enjoy a healthy breakfast", "7:30 AM - 8:00 AM"));
+//                tasks.add(new Task("Take short breaks to stretch and smile", "11:00 AM & 3:00 PM"));
+//                tasks.add(new Task("Connect with colleagues/friends during lunch", "1:00 PM - 1:30 PM"));
+//                tasks.add(new Task("Evening activity that brings you joy", "6:30 PM - 7:30 PM"));
+//                break;
+//
+//            case "sad":
+//                tasks.add(new Task("Gentle morning stretching", "7:15 AM - 7:30 AM"));
+//                tasks.add(new Task("Comforting breakfast", "7:45 AM - 8:15 AM"));
+//                tasks.add(new Task("Take a short walk during break", "11:30 AM"));
+//                tasks.add(new Task("Nourishing lunch", "1:00 PM - 1:30 PM"));
+//                tasks.add(new Task("Evening self-care activity", "7:00 PM - 8:00 PM"));
+//                break;
+//
+//            case "anxious":
+//                tasks.add(new Task("Deep breathing exercises", "7:00 AM - 7:15 AM"));
+//                tasks.add(new Task("Mindful breakfast", "7:30 AM - 8:00 AM"));
+//                tasks.add(new Task("Quick grounding technique practice", "11:00 AM"));
+//                tasks.add(new Task("Quiet lunch break", "1:00 PM - 1:30 PM"));
+//                tasks.add(new Task("Calming evening routine", "7:30 PM - 8:30 PM"));
+//                break;
+//
+//            case "focused":
+//                tasks.add(new Task("Plan your day", "7:00 AM - 7:15 AM"));
+//                tasks.add(new Task("Protein-rich breakfast", "7:30 AM - 8:00 AM"));
+//                tasks.add(new Task("Focused work session", "9:00 AM - 11:00 AM"));
+//                tasks.add(new Task("Strategic lunch planning", "1:00 PM - 1:30 PM"));
+//                tasks.add(new Task("Review accomplishments", "6:30 PM - 7:00 PM"));
+//                break;
+//
+//            case "tired":
+//                tasks.add(new Task("Hydrate with lemon water", "7:00 AM - 7:10 AM"));
+//                tasks.add(new Task("Light energizing breakfast", "7:30 AM - 8:00 AM"));
+//                tasks.add(new Task("Short walk for fresh air", "11:00 AM"));
+//                tasks.add(new Task("Light lunch with proteins", "1:00 PM - 1:30 PM"));
+//                tasks.add(new Task("Gentle evening wind-down", "8:00 PM - 8:30 PM"));
+//                break;
+//
+//            default: // neutral
+//                tasks.add(new Task("Morning hydration", "7:00 AM - 7:10 AM"));
+//                tasks.add(new Task("Balanced breakfast", "7:30 AM - 8:00 AM"));
+//                tasks.add(new Task("Mid-day stretch", "11:30 AM"));
+//                tasks.add(new Task("Nutritious lunch", "1:00 PM - 1:30 PM"));
+//                tasks.add(new Task("Evening relaxation", "7:30 PM - 8:00 PM"));
+//                break;
+//        }
+//
+//        // Customize based on occupation
+//        if (occupation != null) {
+//            switch (occupation.toLowerCase()) {
+//                case "engineer":
+//                    tasks.add(new Task("Review technical concepts", "8:00 PM - 8:30 PM"));
+//                    tasks.add(new Task("Problem-solving exercise", "4:00 PM - 4:30 PM"));
+//                    break;
+//                case "doctor":
+//                    tasks.add(new Task("Medical journal reading", "8:00 PM - 8:30 PM"));
+//                    tasks.add(new Task("Patient care reflection", "6:00 PM - 6:15 PM"));
+//                    break;
+//                case "businessman":
+//                    tasks.add(new Task("Market news review", "8:00 AM - 8:15 AM"));
+//                    tasks.add(new Task("Networking activity", "5:30 PM - 6:30 PM"));
+//                    break;
+//                case "teacher":
+//                    tasks.add(new Task("Lesson planning", "4:30 PM - 5:00 PM"));
+//                    tasks.add(new Task("Educational material review", "8:00 PM - 8:30 PM"));
+//                    break;
+//                case "lawyer":
+//                    tasks.add(new Task("Case review", "8:00 PM - 8:45 PM"));
+//                    tasks.add(new Task("Legal updates reading", "6:00 PM - 6:30 PM"));
+//                    break;
+//                case "singer":
+//                    tasks.add(new Task("Vocal warm-ups", "9:30 AM - 10:00 AM"));
+//                    tasks.add(new Task("Repertoire practice", "5:00 PM - 6:00 PM"));
+//                    break;
+//                default:
+//                    tasks.add(new Task("Professional skill development", "8:00 PM - 8:30 PM"));
+//                    break;
+//            }
+//        }
+//
+//        // Customize based on age group
+//        if (ageGroup != null) {
+//            switch (ageGroup) {
+//                case "10 to 17":
+//                    tasks.add(new Task("Study/homework time", "4:00 PM - 5:30 PM"));
+//                    tasks.add(new Task("Physical activity", "5:30 PM - 6:30 PM"));
+//                    break;
+//                case "18 to 40":
+//                    tasks.add(new Task("Fitness routine", "6:00 AM - 7:00 AM"));
+//                    tasks.add(new Task("Career development", "8:30 PM - 9:30 PM"));
+//                    break;
+//                case "41 to 50":
+//                    tasks.add(new Task("Health check-in", "7:00 PM - 7:15 PM"));
+//                    tasks.add(new Task("Family time", "7:30 PM - 8:30 PM"));
+//                    break;
+//                case "50 to 80":
+//                    tasks.add(new Task("Gentle exercise", "8:00 AM - 8:30 AM"));
+//                    tasks.add(new Task("Social connection", "4:00 PM - 5:00 PM"));
+//                    break;
+//            }
+//        }
+//
+//        // Adjust schedule based on work time
+//        if (workTime != null && workTime.contains("to")) {
+//            try {
+//                String[] times = workTime.split(" to ");
+//                int startHour = Integer.parseInt(times[0].trim());
+//                int endHour = Integer.parseInt(times[1].replaceAll("[^0-9]", "").trim());
+//
+//                // Adjust morning tasks based on work start time
+//                if (startHour > 9) {
+//                    tasks.add(new Task("Leisurely morning routine", "7:30 AM - 8:30 AM"));
+//                } else if (startHour < 8) {
+//                    tasks.add(new Task("Quick morning preparation", "6:00 AM - 6:30 AM"));
+//                }
+//
+//                // Adjust evening tasks based on work end time
+//                if (endHour > 17) {
+//                    tasks.add(new Task("Relaxing evening activity", "8:00 PM - 9:00 PM"));
+//                } else if (endHour < 16) {
+//                    tasks.add(new Task("Afternoon personal project", "4:00 PM - 5:00 PM"));
+//                }
+//            } catch (NumberFormatException e) {
+//                // If parsing fails, use default adjustments
+//                tasks.add(new Task("Work-life balance time", "6:00 PM - 7:00 PM"));
+//            }
+//        }
+//
+//        // Add custom preferences if any
+//        List<String> preferences = user.getPreferences();
+//        if (preferences != null && !preferences.isEmpty()) {
+//            for (String pref : preferences) {
+//                // Add preference at a random time slot
+//                String[] timeSlots = {"Morning", "Afternoon", "Evening"};
+//                String randomTimeSlot = timeSlots[random.nextInt(timeSlots.length)];
+//                tasks.add(new Task(pref, randomTimeSlot));
+//            }
+//        }
+//
+//        return tasks;
+//    }
+//
+//    public static List<Task> generateSchedule(String mood) {
+//        User temp = User.builder().mood(mood).build();
+//        return generateSchedule(temp);
+//    }
+//}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 package net.engineer.moodPlanner.utils;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+
 import net.engineer.moodPlanner.model.Task;
 import net.engineer.moodPlanner.model.User;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MoodRulesEngine {
 
-    public static List<Task> generateSchedule(User user) {
-        String mood = user.getMood();
-        if(mood == null) mood = "neutral";
+    private static final Pattern timePattern =
+            Pattern.compile("(1[0-2]|0?[1-9]):([0-5][0-9])\\s*(AM|PM|am|pm)");
 
-        List<String> preferences = user.getPreferences();
+    private static final Random random = new Random();
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("h:mm a", Locale.ENGLISH);
+
+    public static List<Task> generateSchedule(User user) {
         List<Task> tasks = new ArrayList<>();
 
-        switch (mood.toLowerCase()) {
-            case "happy":
-                tasks.add(new Task("Go for a walk", "Morning"));
-                tasks.add(new Task("Listen to your favorite music", "Afternoon"));
-                tasks.add(new Task("Hangout with friends", "Evening"));
-                break;
+        // 1. Mood pool (10 tasks → pick 5)
+        Map<String, List<Task>> moodTaskPool = new HashMap<>();
+        moodTaskPool.put("happy", Arrays.asList(
+                new Task("Positive affirmations", "7:00 AM"),
+                new Task("Healthy breakfast", "7:30 AM"),
+                new Task("Stretch breaks", "10:30 AM"),
+                new Task("Talk to a friend", "1:00 PM"),
+                new Task("Evening walk", "6:30 PM"),
+                new Task("Listen to music", "5:00 PM"),
+                new Task("Journal gratitude", "9:00 PM"),
+                new Task("Do a hobby", "8:00 PM"),
+                new Task("Quick meditation", "12:00 PM"),
+                new Task("Read a book", "9:30 PM")
+        ));
+        moodTaskPool.put("sad", Arrays.asList(
+                new Task("Gentle stretching", "7:00 AM"),
+                new Task("Comfort breakfast", "8:00 AM"),
+                new Task("Call a loved one", "12:30 PM"),
+                new Task("Short walk", "5:00 PM"),
+                new Task("Watch uplifting movie", "7:30 PM"),
+                new Task("Write in journal", "9:00 PM"),
+                new Task("Meditation", "10:00 AM"),
+                new Task("Cook favorite meal", "1:30 PM"),
+                new Task("Evening self-care", "8:30 PM"),
+                new Task("Read something positive", "9:30 PM")
+        ));
+        moodTaskPool.put("anxious", Arrays.asList(
+                new Task("Deep breathing", "7:15 AM"),
+                new Task("Morning yoga", "8:00 AM"),
+                new Task("Grounding exercise", "11:00 AM"),
+                new Task("Mindful lunch", "1:00 PM"),
+                new Task("Walk outside", "4:00 PM"),
+                new Task("Meditation", "6:00 PM"),
+                new Task("Limit screen time", "8:00 PM"),
+                new Task("Write worries down", "9:00 PM"),
+                new Task("Read calming book", "9:30 PM"),
+                new Task("Sleep early", "10:00 PM")
+        ));
+        moodTaskPool.put("focused", Arrays.asList(
+                new Task("Morning planning", "7:00 AM"),
+                new Task("Healthy breakfast", "7:30 AM"),
+                new Task("Deep work session", "9:00 AM"),
+                new Task("Quick stretch", "11:00 AM"),
+                new Task("Focused lunch", "1:00 PM"),
+                new Task("Project review", "3:00 PM"),
+                new Task("Evening wrap-up", "6:00 PM"),
+                new Task("Plan tomorrow", "8:00 PM"),
+                new Task("Read technical book", "9:00 PM"),
+                new Task("Reflect on goals", "9:30 PM")
+        ));
+        moodTaskPool.put("tired", Arrays.asList(
+                new Task("Hydrate", "7:00 AM"),
+                new Task("Light breakfast", "7:30 AM"),
+                new Task("Nap", "2:00 PM"),
+                new Task("Short walk", "4:00 PM"),
+                new Task("Gentle yoga", "6:00 PM"),
+                new Task("Relaxing tea", "7:00 PM"),
+                new Task("Listen calming music", "8:00 PM"),
+                new Task("No screens", "9:00 PM"),
+                new Task("Gratitude journal", "9:30 PM"),
+                new Task("Sleep early", "10:00 PM")
+        ));
+        moodTaskPool.put("default", Arrays.asList(
+                new Task("Morning hydration", "7:00 AM"),
+                new Task("Balanced breakfast", "7:30 AM"),
+                new Task("Work session", "9:00 AM"),
+                new Task("Mid-day stretch", "12:00 PM"),
+                new Task("Nutritious lunch", "1:00 PM"),
+                new Task("Afternoon work", "3:00 PM"),
+                new Task("Evening relaxation", "6:00 PM"),
+                new Task("Family time", "8:00 PM"),
+                new Task("Read book", "9:00 PM"),
+                new Task("Prepare for tomorrow", "9:30 PM")
+        ));
 
-            case "sad":
-                tasks.add(new Task("Try journaling", "Morning"));
-                tasks.add(new Task("Watch a comforting movie", "Evening"));
-                tasks.add(new Task("Call a loved one", "Night"));
-                break;
+        String moodKey = user.getMood() != null ? user.getMood().toLowerCase() : "default";
+        List<Task> moodTasks = moodTaskPool.getOrDefault(moodKey, moodTaskPool.get("default"));
+        tasks.addAll(pickRandom(moodTasks, 5));
 
-            case "anxious":
-                tasks.add(new Task("Do breathing exercises", "Morning"));
-                tasks.add(new Task("Read a book", "Afternoon"));
-                tasks.add(new Task("Meditation", "Evening"));
-                break;
+        // 2. Occupation pool (5 → 2)
+        Map<String, List<Task>> occupationTaskPool = new HashMap<>();
+        occupationTaskPool.put("engineer", Arrays.asList(
+                new Task("Review technical notes", "8:00 PM"),
+                new Task("Problem solving", "4:00 PM"),
+                new Task("Tech news read", "9:00 AM"),
+                new Task("Debug practice", "11:00 AM"),
+                new Task("Project planning", "2:00 PM")
+        ));
+        occupationTaskPool.put("businessman", Arrays.asList(
+                new Task("Market news review", "8:30 AM"),
+                new Task("Networking call", "11:00 AM"),
+                new Task("Business planning", "2:00 PM"),
+                new Task("Investor updates", "4:00 PM"),
+                new Task("Finance review", "8:00 PM")
+        ));
+        occupationTaskPool.put("lawyer", Arrays.asList(
+                new Task("Case review", "9:00 AM"),
+                new Task("Court prep", "11:00 AM"),
+                new Task("Client meeting", "3:00 PM"),
+                new Task("Legal reading", "6:00 PM"),
+                new Task("Document drafting", "8:00 PM")
+        ));
+        occupationTaskPool.put("teacher", Arrays.asList(
+                new Task("Lesson prep", "7:30 AM"),
+                new Task("Class session", "10:00 AM"),
+                new Task("Student check-in", "1:00 PM"),
+                new Task("Homework review", "5:00 PM"),
+                new Task("Material research", "8:00 PM")
+        ));
+        occupationTaskPool.put("singer", Arrays.asList(
+                new Task("Vocal warm-up", "9:00 AM"),
+                new Task("Music practice", "11:00 AM"),
+                new Task("Songwriting", "2:00 PM"),
+                new Task("Studio recording", "5:00 PM"),
+                new Task("Evening performance", "8:00 PM")
+        ));
+        occupationTaskPool.put("default", Arrays.asList(
+                new Task("Skill practice", "10:00 AM"),
+                new Task("Personal project", "4:00 PM"),
+                new Task("Networking", "6:00 PM"),
+                new Task("Read industry news", "8:00 PM"),
+                new Task("Reflect on progress", "9:00 PM")
+        ));
 
-            case "focused":
-                tasks.add(new Task("Deep work session", "Morning"));
-                tasks.add(new Task("Study/Project work", "Afternoon"));
-                tasks.add(new Task("Review goals", "Night"));
-                break;
-            default:
-                tasks.add(new Task("Take a break", "Anytime"));
-                break;
+        String occKey = user.getOccupation() != null ? user.getOccupation().toLowerCase() : "default";
+        List<Task> occTasks = occupationTaskPool.getOrDefault(occKey, occupationTaskPool.get("default"));
+        tasks.addAll(pickRandom(occTasks, 2));
+
+        // 3. AgeGroup pool (5 → 2)
+        Map<String, List<Task>> ageGroupTaskPool = new HashMap<>();
+        ageGroupTaskPool.put("10 to 17", Arrays.asList(
+                new Task("Play outdoor sports", "5:00 PM"),
+                new Task("Do homework", "7:00 PM"),
+                new Task("Evening games", "6:30 PM"),
+                new Task("Family dinner", "8:30 PM"),
+                new Task("Morning school prep", "6:30 AM")
+        ));
+        ageGroupTaskPool.put("18 to 25", Arrays.asList(
+                new Task("Online skill course", "8:00 PM"),
+                new Task("Internship work", "11:00 AM"),
+                new Task("Job prep reading", "9:30 PM"),
+                new Task("Networking event", "6:00 PM"),
+                new Task("Early workout", "6:00 AM")
+        ));
+        ageGroupTaskPool.put("26 to 40", Arrays.asList(
+                new Task("Career development", "7:30 PM"),
+                new Task("Morning workout", "6:30 AM"),
+                new Task("Project brainstorming", "3:00 PM"),
+                new Task("Evening walk", "7:00 PM"),
+                new Task("Plan next day", "10:00 PM")
+        ));
+        ageGroupTaskPool.put("41 to 60", Arrays.asList(
+                new Task("Yoga", "6:00 AM"),
+                new Task("Health checkup", "11:00 AM"),
+                new Task("Gardening", "5:30 PM"),
+                new Task("Evening news", "7:30 PM"),
+                new Task("Family time", "8:30 PM")
+        ));
+        ageGroupTaskPool.put("60+", Arrays.asList(
+                new Task("Morning prayers", "7:00 AM"),
+                new Task("Morning walk", "7:30 AM"),
+                new Task("Light exercise", "10:00 AM"),
+                new Task("Story telling with grandkids", "6:00 PM"),
+                new Task("Early sleep", "9:00 PM")
+        ));
+
+        if (ageGroupTaskPool.containsKey(user.getAgeGroup().toLowerCase())) {
+            tasks.addAll(pickRandom(ageGroupTaskPool.get(user.getAgeGroup().toLowerCase()), 2));
         }
 
-        // Add custom preferences if any
-        if (preferences != null && !preferences.isEmpty()) {
-            for (String pref : preferences) {
-                tasks.add(new Task(pref, "Custom"));
+        // 4. WorkTime pool (5 → 2)
+        String workTime = user.getWorkTime();
+        if (workTime != null && workTime.contains("to")) {
+            try {
+                String[] times = workTime.split(" to ");
+                int startHour = Integer.parseInt(times[0].trim());
+                int endHour = Integer.parseInt(times[1].replaceAll("[^0-9]", "").trim());
+
+                // Adjust morning tasks based on work start time
+                if (startHour > 9) {
+                    tasks.add(new Task("Leisurely morning routine", "7:30 AM - 8:30 AM"));
+                } else if (startHour < 8) {
+                    tasks.add(new Task("Quick morning preparation", "6:00 AM - 6:30 AM"));
+                }
+
+                // Adjust evening tasks based on work end time
+                if (endHour > 17) {
+                    tasks.add(new Task("Relaxing evening activity", "8:00 PM - 9:00 PM"));
+                } else if (endHour < 16) {
+                    tasks.add(new Task("Afternoon personal project", "4:00 PM - 5:00 PM"));
+                }
+            } catch (NumberFormatException e) {
+                // If parsing fails, use default adjustments
+                tasks.add(new Task("Work-life balance time", "6:00 PM - 7:00 PM"));
             }
         }
 
-        return tasks;
+        // 5. Gender pool (5 → 2)
+        Map<String, List<Task>> genderTaskPool = new HashMap<>();
+        genderTaskPool.put("male", Arrays.asList(
+                new Task("Strength workout", "6:30 AM"),
+                new Task("Sports", "5:30 PM"),
+                new Task("Evening walk", "7:30 PM"),
+                new Task("Music session", "9:00 PM"),
+                new Task("Morning run", "7:00 AM")
+        ));
+        genderTaskPool.put("female", Arrays.asList(
+                new Task("Yoga", "6:30 AM"),
+                new Task("Dance/zumba", "7:00 PM"),
+                new Task("Meditation", "9:30 PM"),
+                new Task("Skin care routine", "10:00 PM"),
+                new Task("Morning jog", "7:00 AM")
+        ));
+        genderTaskPool.put("other", Arrays.asList(
+                new Task("Jogging", "6:30 AM"),
+                new Task("Art practice", "5:30 PM"),
+                new Task("Community meet", "7:30 PM"),
+                new Task("Meditation", "9:00 PM"),
+                new Task("Music session", "8:00 PM")
+        ));
+
+        if (genderTaskPool.containsKey(user.getGender().toLowerCase())) {
+            tasks.addAll(pickRandom(genderTaskPool.get(user.getGender().toLowerCase()), 2));
+        }
+
+        // --- Remove conflicts & sort ---
+        List<Task> finalSchedule = resolveConflicts(tasks);
+
+        return finalSchedule;
     }
 
-    public static List<Task> generateSchedule(String mood) {
-        User temp = new User();
-        temp.setMood(mood);
-        return generateSchedule(temp);
+    // Helper: pick N random tasks
+    private static List<Task> pickRandom(List<Task> pool, int n) {
+        Collections.shuffle(pool);
+        return new ArrayList<>(pool.subList(0, Math.min(n, pool.size())));
     }
 
+    // Helper: resolve conflicts and sort
+    private static List<Task> resolveConflicts(List<Task> tasks) {
+        if (tasks == null) return new ArrayList<>();
+
+        // Sort tasks by parsed time (safe with fallback)
+        Collections.sort(tasks, new Comparator<Task>() {
+            public int compare(Task t1, Task t2) {
+                LocalTime lt1 = parseTime(t1.getTimeOfDay());
+                LocalTime lt2 = parseTime(t2.getTimeOfDay());
+
+                // fallback to NOON if null
+                if (lt1 == null) lt1 = LocalTime.NOON;
+                if (lt2 == null) lt2 = LocalTime.NOON;
+
+                return lt1.compareTo(lt2);
+            }
+        });
+
+        List<Task> resolved = new ArrayList<>();
+        Set<LocalTime> used = new HashSet<>();
+
+        for (Task task : tasks) {
+            LocalTime time = parseTime(task.getTimeOfDay());
+
+            // fallback for invalid/null time
+            if (time == null) time = LocalTime.NOON;
+
+            // find next free 15-min slot
+            while (used.contains(time)) {
+                time = time.plusMinutes(15);
+            }
+
+            // set back formatted string
+            task.setTimeOfDay(time.format(formatter));
+            used.add(time);
+            resolved.add(task);
+        }
+        return resolved;
+    }
+
+    // safer parse method
+    private static LocalTime parseTime(String timeStr) {
+        if (timeStr == null || timeStr.trim().isEmpty()) return null;
+
+        try {
+            // try regex extract first
+            Matcher m = timePattern.matcher(timeStr);
+            if (m.find()) {
+                String txt = m.group(0).toUpperCase().replaceAll("\\s+", " ");
+                return LocalTime.parse(txt, formatter);
+            }
+            // try direct parse
+            return LocalTime.parse(timeStr.trim(), formatter);
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
 }

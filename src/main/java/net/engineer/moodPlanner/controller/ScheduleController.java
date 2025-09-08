@@ -65,10 +65,10 @@ public class ScheduleController {
 
 
     // 🔹 Step 1: User apna mood update kare
-    @PutMapping("/{id}")
-    public ResponseEntity<Schedule> updateMoodOrUsername(
+    @PutMapping("/{userId}")
+    public ResponseEntity<List<Schedule>> updateMoodOrUsername(
             @RequestHeader("Authorization") String token,
-            @PathVariable String id,
+            @PathVariable String userId,
             @RequestBody Map<String, String> body) {
 
         String originalUsername = jwtUtil.extractUsername(token.substring(7));
@@ -76,8 +76,16 @@ public class ScheduleController {
         User user = userRepository.findByUserName(originalUsername)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        if (!user.getId().equals(userId)) {
+            throw new RuntimeException("Unauthorized update attempt!");
+        }
+
         String newUsername = body.get("username");
         String newMood = body.get("mood");
+        String newOccupation = body.get("occupation");
+        String newWorkTime = body.get("workTime");
+        String newGender = body.get("gender");
+        String newAgeGroup = body.get("ageGroup");
 
         if (newUsername != null && !newUsername.isEmpty()) {
             user.setUserName(newUsername);
@@ -87,22 +95,48 @@ public class ScheduleController {
             user.setMood(newMood.toLowerCase());
         }
 
+        if (newOccupation != null && !newOccupation.isEmpty()) {
+            user.setOccupation(newOccupation.toLowerCase());
+        }
+
+        if (newWorkTime != null && !newWorkTime.isEmpty()) {
+            user.setWorkTime(newWorkTime.toLowerCase());
+        }
+
+        if (newGender != null && !newGender.isEmpty()) {
+            user.setGender(newGender.toLowerCase());
+        }
+
+        if (newAgeGroup != null && !newAgeGroup.isEmpty()) {
+            user.setAgeGroup(newAgeGroup.toLowerCase());
+        }
+
         userRepository.save(user);
 
-        Schedule schedule = scheduleRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Schedule not found"));
+        List<Schedule> schedules = scheduleRepository.findByUserId(userId);
 
-        if (newUsername != null && !newUsername.isEmpty()) {
-            schedule.setUsername(newUsername);
+        for (Schedule schedule : schedules) {
+            if (newMood != null && !newMood.isEmpty()) {
+                schedule.setMood(newMood.toLowerCase());
+                schedule.setTasks(MoodRulesEngine.generateSchedule(user));
+            }
+            if (newOccupation != null && !newOccupation.isEmpty()) {
+                schedule.setOccupation(newOccupation.toLowerCase());
+            }
+            if (newWorkTime != null && !newWorkTime.isEmpty()) {
+                schedule.setWorkTime(newWorkTime.toLowerCase());
+            }
+            if (newGender != null && !newGender.isEmpty()) {
+                schedule.setGender(newGender.toLowerCase());
+            }
+            if (newAgeGroup != null && !newAgeGroup.isEmpty()) {
+                schedule.setAgeGroup(newAgeGroup.toLowerCase());
+            }
         }
-        if (newMood != null && !newMood.isEmpty()) {
-            schedule.setMood(newMood.toLowerCase());
-            schedule.setTasks(MoodRulesEngine.generateSchedule(user));
-        }
 
-        scheduleRepository.save(schedule);
+        scheduleRepository.saveAll(schedules);
 
-        return ResponseEntity.ok(schedule);
+        return ResponseEntity.ok(schedules);
     }
 
 

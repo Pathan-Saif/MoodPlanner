@@ -5,13 +5,13 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 
 @Component
 public interface ScheduleRepository  extends MongoRepository<Schedule, String> {
-    List<Schedule> findByUsername(String username);
-    void deleteByUsername(String username);
+    List<Schedule> findByUserId(String userId);
+    Optional<Schedule> findByMood(String mood);
 
-//    void deleteByUserId(String userId);
-//    void findByUserName(String userName);
-//    void deleteById(String id);
+    void deleteByUserId(String userId);
+
 }

@@ -27,8 +27,12 @@ public class Schedule {
 
     @Id
     private String id;
-    private String username;
+    private String userId;
     private String mood;
+    private String occupation;
+    private String workTime;
+    private String gender;
+    private String ageGroup;
     private List<Task> tasks;
 
 }

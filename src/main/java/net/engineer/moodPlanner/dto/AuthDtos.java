@@ -10,6 +10,12 @@ public class AuthDtos {
         private String username;
         private String password;
         private boolean admin;
+
+        private String mood;
+        private String occupation;
+        private String workTime;
+        private String gender;
+        private String ageGroup;
     }
 
     @Data

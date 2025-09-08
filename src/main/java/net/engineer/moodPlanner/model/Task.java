@@ -10,16 +10,6 @@ import org.springframework.data.annotation.Id;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Task {
-//    @Id
-//    private String id;
-//    private String name;
-//    private String description;
-//    private String time;
-//
-//    public Task(String name, String time) {
-//        this.name = name;
-//        this.time = time;
-//    }
 
     private String title;
     private String timeOfDay;

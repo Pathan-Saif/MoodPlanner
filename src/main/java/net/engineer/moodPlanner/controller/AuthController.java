@@ -4,6 +4,7 @@ import net.engineer.moodPlanner.dto.AuthDtos;
 import net.engineer.moodPlanner.model.User;
 import net.engineer.moodPlanner.security.JwtUtil;
 import net.engineer.moodPlanner.service.AuthService;
+import net.engineer.moodPlanner.service.ScheduleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -20,9 +21,23 @@ public class AuthController {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @Autowired
+    private ScheduleService scheduleService;
+
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody AuthDtos.RegisterRequest req) {
-        authService.register(req.getUsername(), req.getPassword(), req.isAdmin());
+        authService.register(
+                req.getUsername(),
+                req.getPassword(),
+                req.isAdmin(),
+                req.getMood(),
+                req.getOccupation(),
+                req.getAgeGroup(),
+                req.getWorkTime(),
+                req.getGender()
+
+        );
+
         return ResponseEntity.ok("Registered");
     }
 
@@ -46,8 +61,7 @@ public class AuthController {
         User user = authService.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        authService.deleteAllSchedulesForUser(username);
-
+        authService.deleteAllSchedulesForUser(user.getId());
         authService.deleteUser(user);
 
         return ResponseEntity.ok("Your account and all related data have been permanently deleted.");

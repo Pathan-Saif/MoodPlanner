@@ -9,6 +9,7 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
 @Data
@@ -20,13 +21,18 @@ public class User {
 
     @Id
     private String id;
-
     @Indexed(unique = true)
     private String userName;
-
     private String password;
-    private Set<Role> roles;
     private String mood;
+
+    private String occupation;
+    private String workTime;
+    private String gender;
+    private String ageGroup;
+
+    private Set<Role> roles;
+    private List<Task> tasks;
     private List<String> preferences;
 
 

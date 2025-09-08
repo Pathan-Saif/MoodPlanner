@@ -34,20 +34,25 @@ public class AuthService {
     @Autowired
     private JwtUtil jwt;
 
-    public void register(String username, String rawPassword, boolean admin) {
+    public void register(String username, String rawPassword, boolean admin, String mood, String occupation, String ageGroup, String workTime, String gender) {
         if (repo.existsByUserName(username)) {
             throw new RuntimeException("Username already exists");
+
         }
         User u = new User();
         u.setUserName(username);
         u.setPassword(encoder.encode(rawPassword));
         Set<Role> roles = new HashSet<>();
-        roles.add(Role.USER);
         if (admin) {
             roles.add(Role.ADMIN);
         }
-        u.setMood("neutral");
+        else roles.add(Role.USER);
         u.setRoles(roles);
+        u.setMood(mood);
+        u.setOccupation(occupation);
+        u.setAgeGroup(ageGroup);
+        u.setWorkTime(workTime);
+        u.setGender(gender);
         repo.save(u);
     }
 
@@ -68,8 +73,8 @@ public class AuthService {
         return repo.findByUserName(username);
     }
 
-    public void deleteAllSchedulesForUser(String username) {
-        scheduleRepository.deleteByUsername(username);
+    public void deleteAllSchedulesForUser(String userID) {
+        scheduleRepository.deleteByUserId(userID);
     }
 
     public void deleteUser(User user) {
