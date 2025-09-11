@@ -14,16 +14,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Schedule {
-//    @Id
-//    private String id;
-//    private String userId;
-//    private String mood;
-//    private List<Task> tasks;
-
-//    public void setMood(String mood) {
-//        this.mood = mood;
-//    }
-
 
     @Id
     private String id;
