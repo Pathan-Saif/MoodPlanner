@@ -18,6 +18,7 @@ public class Schedule {
     @Id
     private String id;
     private String userId;
+    private  String userName;
     private String mood;
     private String occupation;
     private String workTime;

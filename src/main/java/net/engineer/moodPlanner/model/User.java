@@ -1,9 +1,8 @@
 package net.engineer.moodPlanner.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -21,19 +20,33 @@ public class User {
 
     @Id
     private String id;
-    @Indexed(unique = true)
-    private String userName;
-    private String password;
-    private String mood;
 
+    @Indexed(unique = true)
+    private String email;
+
+    private String userName;
+
+    private String password;
+
+    private String mood;
     private String occupation;
     private String workTime;
     private String gender;
     private String ageGroup;
 
+    // Roles (e.g. USER, ADMIN)
     private Set<Role> roles;
+
+    // Tasks created by user
     private List<Task> tasks;
+
+    // Preferences, tags, etc.
     private List<String> preferences;
+
+    private boolean verified = false;
+
+    private String verificationToken;
+
 
 
 }

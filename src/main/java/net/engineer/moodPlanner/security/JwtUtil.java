@@ -13,7 +13,6 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
-    // TODO: env variable / config se lo in prod
     private final String SECRET = "TaK+HaV^uvCHEFsEVfypW#7g9^k*Z8$V";
 
     public String extractUsername(String token) {
@@ -48,3 +47,8 @@ public class JwtUtil {
         return user.equals(username) && extractExpiration(token).after(new Date());
     }
 }
+
+
+
+
+

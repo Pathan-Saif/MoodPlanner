@@ -1,16 +1,25 @@
 package net.engineer.moodPlanner.dto;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
-
 
 public class AuthDtos {
 
     @Data
     public static class RegisterRequest {
-        private String username;
-        private String password;
-        private boolean admin;
 
+        @NotBlank(message = "Username is required")
+        private String username;
+
+        @NotBlank(message = "Password is required")
+        private String password;
+
+        @NotBlank(message = "Email is required")
+        @Email(message = "Please enter a valid email address")
+        private String email;
+
+        private boolean admin;
         private String mood;
         private String occupation;
         private String workTime;
@@ -20,7 +29,11 @@ public class AuthDtos {
 
     @Data
     public static class LoginRequest {
-        private String username;
+        @NotBlank(message = "Email is required")
+        @Email(message = "Please enter a valid email address")
+        private String email;
+
+        @NotBlank(message = "Password is required")
         private String password;
     }
 
@@ -30,3 +43,4 @@ public class AuthDtos {
         public TokenResponse(String token) { this.token = token; }
     }
 }
+

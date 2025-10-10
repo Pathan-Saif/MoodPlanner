@@ -66,16 +66,16 @@ public class AdminController {
     }
 
     @DeleteMapping("/users/{username}")
-    public ResponseEntity<String> deleteUserAccountByAdmin(@PathVariable String username) {
+    public ResponseEntity<String> deleteUserAccountByAdmin(@PathVariable String email) {
 
-        User user = authService.findByUsername(username)
+        User user = authService.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        authService.deleteAllSchedulesForUser(username);
+        authService.deleteAllSchedulesForUser(email);
 
         authService.deleteUser(user);
 
-        return ResponseEntity.ok("User '" + username + "' and all related data have been permanently deleted by admin.");
+        return ResponseEntity.ok("User '" + email + "' and all related data have been permanently deleted by admin.");
     }
 
     @GetMapping("/schedules")

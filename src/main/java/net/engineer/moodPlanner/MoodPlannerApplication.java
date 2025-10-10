@@ -5,11 +5,13 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.MongoTransactionManager;
+import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @SpringBootApplication
-@EnableTransactionManagement
+//@EnableTransactionManagement
+@EnableMongoRepositories(basePackages = "net.engineer.moodPlanner.repository")
 public class MoodPlannerApplication {
 
 	public static void main(String[] args) {
@@ -17,7 +19,7 @@ public class MoodPlannerApplication {
 	}
 
 	@Bean
-	public PlatformTransactionManager add(MongoDatabaseFactory dbFactory){
+	public PlatformTransactionManager transactionManager(MongoDatabaseFactory dbFactory){
 		return new MongoTransactionManager(dbFactory);
 	}
 

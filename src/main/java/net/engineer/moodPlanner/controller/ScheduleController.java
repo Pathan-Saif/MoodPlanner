@@ -39,21 +39,50 @@ public class ScheduleController {
     public ResponseEntity<Schedule> generateSchedule(
             @RequestHeader("Authorization") String token) {
 
-        String username = jwtUtil.extractUsername(token.substring(7));
-        User user = userRepository.findByUserName(username)
+        String email = jwtUtil.extractUsername(token.substring(7));
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        // Pehle check karo kia schedule already exist hai ya nahi
+        List<Schedule> existingSchedules = scheduleRepository.findByUserId(user.getId());
+
+        if (!existingSchedules.isEmpty()) {
+            // Agar hai to usme se pehla return kya
+            return ResponseEntity.ok(existingSchedules.get(0));
+        }
+
+        // Agar nahi hai to naya banaya
         Schedule saved = scheduleService.createSchedule(user);
         return ResponseEntity.ok(saved);
+    }
+
+
+    // Update a specific task by title
+    @PutMapping("/{userId}/update-task/{oldTitle}")
+    public ResponseEntity<?> updateTask(
+            @PathVariable String userId,
+            @PathVariable String oldTitle,
+            @RequestBody Task updatedTask
+    ) {
+        try {
+            Schedule updatedSchedule = scheduleService.updateTask(userId, oldTitle, updatedTask);
+            return ResponseEntity.ok(updatedSchedule);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @GetMapping
     public ResponseEntity<List<Schedule>> getSchedules(
             @RequestHeader("Authorization") String token) {
 
-        String username = jwtUtil.extractUsername(token.substring(7));
-        return ResponseEntity.ok(scheduleService.getSchedulesForUser(username));
+        String email = jwtUtil.extractUsername(token.substring(7));
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        return ResponseEntity.ok(scheduleService.getSchedulesForUser(user.getId()));
     }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<Schedule> getById(@RequestHeader("Authorization") String auth,
@@ -71,9 +100,9 @@ public class ScheduleController {
             @PathVariable String userId,
             @RequestBody Map<String, String> body) {
 
-        String originalUsername = jwtUtil.extractUsername(token.substring(7));
+        String email = jwtUtil.extractUsername(token.substring(7));
 
-        User user = userRepository.findByUserName(originalUsername)
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         if (!user.getId().equals(userId)) {
@@ -155,5 +184,47 @@ public class ScheduleController {
         scheduleService.deleteAllSchedulesForUser(username);
         return ResponseEntity.ok("All schedules removed for " + username);
     }
+
+
+    @DeleteMapping("/{userId}/delete-task/{title}")
+    public ResponseEntity<?> deleteTask(
+            @PathVariable String userId,
+            @PathVariable String title,
+            @RequestHeader("Authorization") String auth
+    ) {
+        // JWT se username verify kar lo
+        String username = jwtUtil.extractUsername(auth.substring(7));
+        User user = userRepository.findByEmail(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (!user.getId().equals(userId)) {
+            return ResponseEntity.status(403).body("Unauthorized");
+        }
+
+        boolean deleted = scheduleService.deleteTaskForUser(userId, title);
+        if (deleted) return ResponseEntity.ok("Task deleted successfully!");
+        return ResponseEntity.status(404).body("Task not found");
+    }
+
+
+    // Add task endpoint
+    @PostMapping("/{userId}/add-task")
+    public ResponseEntity<Schedule> addTask(
+            @PathVariable String userId,
+            @RequestHeader("Authorization") String auth,
+            @RequestBody Task newTask
+    ) {
+        String username = jwtUtil.extractUsername(auth.substring(7));
+        User user = userRepository.findByEmail(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (!user.getId().equals(userId)) {
+            return ResponseEntity.status(403).build();
+        }
+
+        Schedule updatedSchedule = scheduleService.addTaskForUser(userId, newTask);
+        return ResponseEntity.ok(updatedSchedule);
+    }
+
 
 }
