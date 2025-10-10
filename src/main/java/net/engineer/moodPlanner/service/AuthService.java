@@ -108,8 +108,8 @@ public class AuthService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
         user.setPassword(encoder.encode(newPassword));
         repo.save(user);
-        System.out.println("Encoder type: " + encoder.getClass().getName());
-        System.out.println("Encoded Password: " + encoder.encode(newPassword));
+        // System.out.println("Encoder type: " + encoder.getClass().getName());
+        // System.out.println("Encoded Password: " + encoder.encode(newPassword));
 
         otpStore.remove(email); // clear used OTP
     }
