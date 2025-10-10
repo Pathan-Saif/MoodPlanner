@@ -110,7 +110,6 @@ public class AuthService {
         repo.save(user);
         // System.out.println("Encoder type: " + encoder.getClass().getName());
         // System.out.println("Encoded Password: " + encoder.encode(newPassword));
-
         otpStore.remove(email); // clear used OTP
     }
 
