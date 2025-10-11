@@ -73,9 +73,12 @@ public class SecurityConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOrigins("https://mood-planner-3shmgl1h3-saifs-projects-022e179f.vercel.app/");
+                        .allowedOrigins("https://mood-planner-3shmgl1h3-saifs-projects-022e179f.vercel.app")
+                        .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
+                        .allowedHeaders("*");
             }
         };
     }
+
 
 }
