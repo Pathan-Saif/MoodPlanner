@@ -1,12 +1,21 @@
 # Step 1: Use OpenJDK 17 as base image
+FROM maven:3.9.2-eclipse-temurin-17 AS build
+
+WORKDIR /app
+
+# Copy pom.xml and src folder
+COPY pom.xml .
+COPY src ./src
+
+# Build the jar
+RUN mvn clean package -DskipTests
+
+# Use minimal OpenJDK image for running
 FROM openjdk:17-jdk-slim
 
-# Step 2: Create volume for /tmp
-VOLUME /tmp
+WORKDIR /app
 
-# Step 3: Copy the Spring Boot jar
-ARG JAR_FILE=target/*.jar
-COPY ${JAR_FILE} app.jar
+# Copy the jar from build stage
+COPY --from=build /app/target/*.jar app.jar
 
-# Step 4: Run the jar
-ENTRYPOINT ["java","-jar","/app.jar"]
+ENTRYPOINT ["java","-jar","app.jar"]
