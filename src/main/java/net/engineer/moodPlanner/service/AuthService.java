@@ -15,6 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.*;
 
 @Service
@@ -37,7 +38,7 @@ public class AuthService {
     private JwtUtil jwt;
 
     @Autowired
-    private EmailService emailService;
+    private SendGridEmailService emailService;
 
     @Autowired
     private UserRepository userRepository;
@@ -45,6 +46,7 @@ public class AuthService {
 
     public void register(String username, String email, String rawPassword, boolean admin,
                          String mood, String occupation, String ageGroup, String workTime, String gender) {
+
         if (repo.existsByEmail(email)) {
             throw new RuntimeException("Email already exists");
         }
@@ -53,13 +55,8 @@ public class AuthService {
         u.setUserName(username);
         u.setEmail(email);
         u.setPassword(encoder.encode(rawPassword));
-
         Set<Role> roles = new HashSet<>();
-        if (admin) {
-            roles.add(Role.ADMIN);
-        } else {
-            roles.add(Role.USER);
-        }
+        roles.add(admin ? Role.ADMIN : Role.USER);
         u.setRoles(roles);
         u.setMood(mood);
         u.setOccupation(occupation);
@@ -71,10 +68,18 @@ public class AuthService {
         u.setVerificationToken(token);
         u.setVerified(false);
 
-        repo.save(u);
-        emailService.sendVerificationEmail(email, token);
+        // Step 2: Send email first
+        try {
+            emailService.sendVerificationEmail(email, token);
+        } catch (IOException e) {
+            // Email failed → do not save user
+            throw new RuntimeException("Failed to send verification email, registration aborted", e);
+        }
 
+        // Step 3: Email sent successfully → save user
+        repo.save(u);
     }
+
 
 
     private final Map<String, String> otpStore = new HashMap<>();
