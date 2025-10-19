@@ -1,5 +1,6 @@
 package net.engineer.moodPlanner.service;
 
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import net.engineer.moodPlanner.model.Role;
 import net.engineer.moodPlanner.model.User;
@@ -38,10 +39,13 @@ public class AuthService {
     private JwtUtil jwt;
 
     @Autowired
-    private SendGridEmailService emailService;
+    private EmailService emailService;
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private TokenService tokenService;
 
 
     public void register(String username, String email, String rawPassword, boolean admin,
@@ -51,34 +55,69 @@ public class AuthService {
             throw new RuntimeException("Email already exists");
         }
 
-        User u = new User();
-        u.setUserName(username);
-        u.setEmail(email);
-        u.setPassword(encoder.encode(rawPassword));
-        Set<Role> roles = new HashSet<>();
-        roles.add(admin ? Role.ADMIN : Role.USER);
-        u.setRoles(roles);
-        u.setMood(mood);
-        u.setOccupation(occupation);
-        u.setAgeGroup(ageGroup);
-        u.setWorkTime(workTime);
-        u.setGender(gender);
+        // Hash the password now (store hash in token, NOT raw password)
+        String passwordHash = encoder.encode(rawPassword);
 
-        String token = UUID.randomUUID().toString();
-        u.setVerificationToken(token);
-        u.setVerified(false);
+        // roles string
+        String rolesStr = admin ? "ADMIN" : "USER";
 
-        // Step 2: Send email first
+        // Create a signed token containing the user data (expires automatically)
+        String token = tokenService.createVerificationToken(
+                username, email, passwordHash, rolesStr, mood, occupation, ageGroup, workTime, gender
+        );
+
+        // Build verification link (use your backend host)
+        String backendVerifyUrl = System.getenv("BACKEND_BASE_URL"); // e.g., https://api.yoursite.com
+        if (backendVerifyUrl == null) backendVerifyUrl = "http://localhost:8080";
+        String verifyLink = backendVerifyUrl + "/auth/verify?token=" + token;
+
+        // Send email. If email sending fails, registration aborted and user not saved.
         try {
-            emailService.sendVerificationEmail(email, token);
-        } catch (IOException e) {
-            // Email failed → do not save user
-            throw new RuntimeException("Failed to send verification email, registration aborted", e);
+            emailService.sendVerificationEmail(email, verifyLink);
+        } catch (Exception ex) {
+            // log and rethrow (do not save user)
+            throw new RuntimeException("Failed to send verification email, registration aborted", ex);
         }
 
-        // Step 3: Email sent successfully → save user
-        repo.save(u);
+        // SUCCESS: email sent and user not saved yet (we wait for that /verify call)
     }
+
+
+
+//    public void register(String username, String email, String rawPassword, boolean admin,
+//                         String mood, String occupation, String ageGroup, String workTime, String gender) {
+//
+//        if (repo.existsByEmail(email)) {
+//            throw new RuntimeException("Email already exists");
+//        }
+//
+//        User u = new User();
+//        u.setUserName(username);
+//        u.setEmail(email);
+//        u.setPassword(encoder.encode(rawPassword));
+//        Set<Role> roles = new HashSet<>();
+//        roles.add(admin ? Role.ADMIN : Role.USER);
+//        u.setRoles(roles);
+//        u.setMood(mood);
+//        u.setOccupation(occupation);
+//        u.setAgeGroup(ageGroup);
+//        u.setWorkTime(workTime);
+//        u.setGender(gender);
+//
+//        String token = UUID.randomUUID().toString();
+//        u.setVerificationToken(token);
+//        u.setVerified(false);
+//
+//        // Send email first, save only if sending succeeds
+//        try {
+//            emailService.sendVerificationEmail(email, token); // throws MessagingException on failure
+//            repo.save(u);  // only save after successful send
+//        } catch (MessagingException e) {
+//            // log and rethrow or return a meaningful response to client
+//            // do not save the user
+//            throw new RuntimeException("Failed to send verification email. Registration aborted.", e);
+//        }
+//    }
 
 
 

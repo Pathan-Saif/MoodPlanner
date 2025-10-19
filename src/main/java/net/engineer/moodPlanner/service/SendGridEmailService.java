@@ -15,7 +15,7 @@ public class SendGridEmailService {
     private final String SENDGRID_API_KEY = System.getenv("SENDGRID_API_KEY");
 
     public void sendVerificationEmail(String toEmail, String token) throws IOException {
-        Email from = new Email("your_email@example.com");
+        Email from = new Email("mdsaifalikhan494@gmail.com");
         String subject = "Email Verification";
 
         Email to = new Email(toEmail);

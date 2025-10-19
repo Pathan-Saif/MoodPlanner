@@ -1,0 +1,42 @@
+package net.engineer.moodPlanner.service;
+
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.interfaces.DecodedJWT;
+
+import java.util.Date;
+public class TokenService {
+
+    private final Algorithm algorithm;
+    private final long expirationMs;
+
+    public TokenService(String secret, long expirationMs) {
+        this.algorithm = Algorithm.HMAC256(secret);
+        this.expirationMs = expirationMs;
+    }
+
+    public String createVerificationToken(String username, String email, String passwordHash, String rolesJson, String mood, String occupation, String ageGroup, String workTime, String gender) {
+        long now = System.currentTimeMillis();
+        return JWT.create()
+                .withIssuer("moodplanner")
+                .withIssuedAt(new Date(now))
+                .withExpiresAt(new Date(now + expirationMs))
+                .withClaim("username", username)
+                .withClaim("email", email)
+                .withClaim("passwordHash", passwordHash)
+                .withClaim("roles", rolesJson) // e.g. "USER" or JSON string if multiple
+                .withClaim("mood", mood)
+                .withClaim("occupation", occupation)
+                .withClaim("ageGroup", ageGroup)
+                .withClaim("workTime", workTime)
+                .withClaim("gender", gender)
+                .sign(algorithm);
+    }
+
+    public DecodedJWT verifyToken(String token) {
+        return JWT.require(algorithm)
+                .withIssuer("moodplanner")
+                .build()
+                .verify(token);
+    }
+}
