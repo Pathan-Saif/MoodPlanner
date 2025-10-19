@@ -76,6 +76,7 @@ public class AuthService {
             emailService.sendVerificationEmail(email, verifyLink);
         } catch (Exception ex) {
             // log and rethrow (do not save user)
+            ex.printStackTrace();
             throw new RuntimeException("Failed to send verification email, registration aborted", ex);
         }
 
