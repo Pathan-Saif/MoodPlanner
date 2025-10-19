@@ -33,6 +33,7 @@
 
 package net.engineer.moodPlanner.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -44,28 +45,19 @@ import java.util.Properties;
 public class MailConfig {
 
     @Bean
-    public JavaMailSender javaMailSender() {
+    public JavaMailSender javaMailSender(@Value("${SPRING_MAIL_USERNAME}") String username,
+                                         @Value("${SPRING_MAIL_PASSWORD}") String password) {
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
-
-        String host = System.getenv("SPRING_MAIL_HOST");          // e.g. smtp.gmail.com
-        String port = System.getenv("SPRING_MAIL_PORT");          // e.g. 587
-        String username = System.getenv("SPRING_MAIL_USERNAME");  // your email
-        String password = System.getenv("SPRING_MAIL_PASSWORD");  // app password
-        String protocol = System.getenv("SPRING_MAIL_PROTOCOL");  // optional
-
-        mailSender.setHost(host != null ? host : "smtp.sendgrid.net");
-        mailSender.setPort(port != null ? Integer.parseInt(port) : 587);
-        mailSender.setUsername(username != null ? username : "apikey");
+        mailSender.setHost("smtp.sendgrid.net");
+        mailSender.setPort(587);
+        mailSender.setUsername(username);
         mailSender.setPassword(password);
-//        mailSender.setProtocol(protocol != null ? protocol : "smtp");
 
         Properties props = mailSender.getJavaMailProperties();
-        props.put("mail.transport.protocol", mailSender.getProtocol());
+        props.put("mail.transport.protocol", "smtp");
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.smtp.ssl.enable", "false"); // Gmail TLS
-        props.put("mail.debug", "false");
-
         return mailSender;
     }
+
 }
