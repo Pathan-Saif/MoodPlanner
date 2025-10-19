@@ -32,35 +32,40 @@
 //
 
 
-
-
 package net.engineer.moodPlanner.service;
 
+import io.jsonwebtoken.lang.Assert;
+import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
-
 @Service
 public class EmailService {
+
+    @Value("${spring.mail.from}")
+    private String fromEmail;
 
     @Autowired
     private JavaMailSender mailSender;
 
-    public void sendVerificationEmail(String toEmail, String verifyLink) throws MessagingException {
-        MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-        helper.setFrom(System.getenv("SPRING_MAIL_FROM")); // must be same as SMTP username
-        helper.setTo(toEmail);
-        helper.setSubject("Verify your MoodPlanner account");
-        String html = "<p>Welcome — click to verify:</p>"
-                + "<p><a href=\"" + verifyLink + "\">Verify your email</a></p>"
-                + "<p>This link expires in " + (System.getenv("VERIFICATION_TOKEN_EXP_MS") != null ? System.getenv("VERIFICATION_TOKEN_EXP_MS") : "3600000") + " ms.</p>";
-        helper.setText(html, true);
-        mailSender.send(message);
-    }
+    public void sendVerificationEmail(String to, String link) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true);
+            Assert.notNull(fromEmail, "From email must not be null"); // debug check
 
+            helper.setFrom(fromEmail); // ← yaha exception aa raha tha
+            helper.setTo(to);
+            helper.setSubject("Verify your MoodPlanner account");
+            helper.setText("Click this link to verify: " + link, true);
+
+            mailSender.send(message);
+        } catch (Exception e) {
+            e.printStackTrace(); // backend console me exact error
+            throw new RuntimeException("Failed to send verification email", e);
+        }
+    }
 }
