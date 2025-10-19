@@ -53,11 +53,11 @@ public class MailConfig {
         String password = System.getenv("SPRING_MAIL_PASSWORD");  // app password
         String protocol = System.getenv("SPRING_MAIL_PROTOCOL");  // optional
 
-        mailSender.setHost(host != null ? host : "smtp.gmail.com");
+        mailSender.setHost(host != null ? host : "smtp.sendgrid.net");
         mailSender.setPort(port != null ? Integer.parseInt(port) : 587);
-        mailSender.setUsername(username);
+        mailSender.setUsername(username != null ? username : "apikey");
         mailSender.setPassword(password);
-        mailSender.setProtocol(protocol != null ? protocol : "smtp");
+//        mailSender.setProtocol(protocol != null ? protocol : "smtp");
 
         Properties props = mailSender.getJavaMailProperties();
         props.put("mail.transport.protocol", mailSender.getProtocol());
