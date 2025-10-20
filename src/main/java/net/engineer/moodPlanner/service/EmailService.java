@@ -45,7 +45,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class EmailService {
 
-    @Value("${spring.mail.from}")
+    @Value("${SPRING_MAIL_FROM}")
     private String fromEmail;
 
     @Autowired

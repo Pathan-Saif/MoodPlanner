@@ -95,6 +95,7 @@ public class MailConfig {
         props.put("mail.smtp.starttls.enable", "true");
         props.put("mail.debug", "false");
 
+        System.out.println("SMTP Config -> Host: " + mailSender.getHost() + ", User: " + mailSender.getUsername());
         return mailSender;
     }
 }
