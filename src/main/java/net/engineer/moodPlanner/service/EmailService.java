@@ -34,38 +34,53 @@
 
 package net.engineer.moodPlanner.service;
 
-import io.jsonwebtoken.lang.Assert;
-import jakarta.mail.internet.MimeMessage;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.Map;
 
 @Service
 public class EmailService {
 
+    @Value("${SENDGRID_API_KEY}")
+    private String sendGridApiKey;
+
     @Value("${SPRING_MAIL_FROM}")
     private String fromEmail;
 
-    @Autowired
-    private JavaMailSender mailSender;
-
     public void sendVerificationEmail(String to, String link) {
         try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true);
-            Assert.notNull(fromEmail, "From email must not be null"); // debug check
+            String sendGridUrl = "https://api.sendgrid.com/v3/mail/send";
 
-            helper.setFrom(fromEmail); // ← yaha exception aa raha tha
-            helper.setTo(to);
-            helper.setSubject("Verify your MoodPlanner account");
-            helper.setText("Click this link to verify: " + link, true);
+            RestTemplate restTemplate = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(sendGridApiKey);
 
-            mailSender.send(message);
+            Map<String, Object> body = Map.of(
+                    "personalizations", new Object[]{
+                            Map.of("to", new Object[]{Map.of("email", to)})
+                    },
+                    "from", Map.of("email", fromEmail),
+                    "subject", "Verify your MoodPlanner account",
+                    "content", new Object[]{
+                            Map.of("type", "text/html",
+                                    "value", "<p>Click <a href='" + link + "'>here</a> to verify your account.</p>")
+                    }
+            );
+
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+            ResponseEntity<String> response = restTemplate.exchange(sendGridUrl, HttpMethod.POST, entity, String.class);
+
+            if (!response.getStatusCode().is2xxSuccessful()) {
+                throw new RuntimeException("SendGrid API failed: " + response.getStatusCode());
+            }
+
         } catch (Exception e) {
-            e.printStackTrace(); // backend console me exact error
-            throw new RuntimeException("Failed to send verification email", e);
+            e.printStackTrace();
+            throw new RuntimeException("Failed to send verification email via SendGrid API", e);
         }
     }
 }
