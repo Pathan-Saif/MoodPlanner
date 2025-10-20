@@ -16,8 +16,9 @@ public class TokenService {
 
     // @Value annotation se environment variables / properties inject kar rahe hain
     public TokenService(
-            @Value("${spring.jwt.secret}") String secret,
-            @Value("${spring.jwt.expiration}") long expirationMs) {
+            @Value("${SPRING_JWT_SECRET:defaultSecretKey}") String secret,
+            @Value("${SPRING_JWT_EXPIRATION:86400000}") long expirationMs
+    ) {
         this.algorithm = Algorithm.HMAC256(secret);
         this.expirationMs = expirationMs;
     }
