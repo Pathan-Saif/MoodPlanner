@@ -8,6 +8,8 @@ import net.engineer.moodPlanner.repository.ScheduleRepository;
 import net.engineer.moodPlanner.repository.UserRepository;
 import net.engineer.moodPlanner.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -15,6 +17,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.util.*;
@@ -68,7 +71,7 @@ public class AuthService {
 
         // Build verification link (use your backend host)
         String backendVerifyUrl = System.getenv("BACKEND_BASE_URL"); // e.g., https://api.yoursite.com
-        if (backendVerifyUrl == null) backendVerifyUrl = "http://localhost:8080";
+        if (backendVerifyUrl == null) backendVerifyUrl = "https://moodplanner.onrender.com";
         String verifyLink = backendVerifyUrl + "/auth/verify?token=" + token;
 
         // Send email. If email sending fails, registration aborted and user not saved.
@@ -122,8 +125,13 @@ public class AuthService {
 
 
 
+    @Value("${SENDGRID_API_KEY}")
+    private String sendGridApiKey;
+
+    @Value("${SPRING_MAIL_FROM}")
+    private String fromEmail;
+
     private final Map<String, String> otpStore = new HashMap<>();
-    private final JavaMailSender mailSender;
 
     public void sendPasswordResetOtp(String email) {
         User user = repo.findByEmail(email)
@@ -132,13 +140,41 @@ public class AuthService {
         String otp = String.valueOf((int)(Math.random() * 900000) + 100000);
         otpStore.put(email, otp);
 
-        // send email
-        SimpleMailMessage msg = new SimpleMailMessage();
-        msg.setTo(email);
-        msg.setSubject("Password Reset OTP");
-        msg.setText("Your OTP for password reset is: " + otp);
-        mailSender.send(msg);
+        try {
+            String sendGridUrl = "https://api.sendgrid.com/v3/mail/send";
+            RestTemplate restTemplate = new RestTemplate();
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(sendGridApiKey);
+
+            // Email body as HTML
+            String htmlContent = "<p>Your OTP for password reset is: <b>" + otp + "</b></p>";
+
+            Map<String, Object> body = Map.of(
+                    "personalizations", new Object[]{
+                            Map.of("to", new Object[]{Map.of("email", email)})
+                    },
+                    "from", Map.of("email", fromEmail),
+                    "subject", "Password Reset OTP - MoodPlanner",
+                    "content", new Object[]{
+                            Map.of("type", "text/html", "value", htmlContent)
+                    }
+            );
+
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+            ResponseEntity<String> response = restTemplate.exchange(sendGridUrl, HttpMethod.POST, entity, String.class);
+
+            if (!response.getStatusCode().is2xxSuccessful()) {
+                throw new RuntimeException("SendGrid API failed: " + response.getStatusCode());
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to send OTP via SendGrid", e);
+        }
     }
+
 
     public boolean verifyOtp(String email, String otp) {
         return otp.equals(otpStore.get(email));
