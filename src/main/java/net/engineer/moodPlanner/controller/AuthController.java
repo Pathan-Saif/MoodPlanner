@@ -48,69 +48,46 @@ public class AuthController {
     @GetMapping("/auth/verify")
     public ResponseEntity<Void> verifyUser(@RequestParam String token) {
         try {
+            // Decode JWT token
             DecodedJWT decoded = tokenService.verifyToken(token);
             String email = decoded.getClaim("email").asString();
 
-            // If user already exists, redirect to login (or show message)
-            if (repo.existsByEmail(email)) {
-                String frontendLogin = System.getenv("FRONTEND_BASE_URL");
-                if (frontendLogin == null) frontendLogin = "http://localhost:3000/login";
-                return ResponseEntity.status(HttpStatus.FOUND)
-                        .location(URI.create(frontendLogin))
-                        .build();
+            // Fetch user from DB
+            User user = repo.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found. Please register first."));
+
+            // Mark user as verified if not already
+            if (!user.isVerified()) {
+                user.setVerified(true);
+                repo.save(user);
             }
 
-            // Extract data and create user
-            String username = decoded.getClaim("username").asString();
-            String passwordHash = decoded.getClaim("passwordHash").asString();
-            String rolesStr = decoded.getClaim("roles").asString();
-            String mood = decoded.getClaim("mood").asString();
-            String occupation = decoded.getClaim("occupation").asString();
-            String ageGroup = decoded.getClaim("ageGroup").asString();
-            String workTime = decoded.getClaim("workTime").asString();
-            String gender = decoded.getClaim("gender").asString();
-
-            User u = new User();
-            u.setUserName(username);
-            u.setEmail(email);
-            u.setPassword(passwordHash); // already hashed
-            Set<Role> roles = new HashSet<>();
-            roles.add("ADMIN".equals(rolesStr) ? Role.ADMIN : Role.USER);
-            u.setRoles(roles);
-            u.setMood(mood);
-            u.setOccupation(occupation);
-            u.setAgeGroup(ageGroup);
-            u.setWorkTime(workTime);
-            u.setGender(gender);
-
-            u.setVerificationToken(null);
-            u.setVerified(true);
-            repo.save(u);
-
-            // Redirect user to frontend login page
+            // Redirect to frontend login page
             String frontendLogin = System.getenv("FRONTEND_BASE_URL");
-            if (frontendLogin == null) frontendLogin = "http://localhost:3000/login";
+            if (frontendLogin == null) frontendLogin = "https://mood-planner-ui.vercel.app";
+
             return ResponseEntity.status(HttpStatus.FOUND)
-                    .location(URI.create(frontendLogin))
+                    .location(URI.create(frontendLogin + "/login"))
                     .build();
 
         } catch (TokenExpiredException ex) {
-            // token expired - redirect to frontend page with message or show error
-            String frontendErr = System.getenv("FRONTEND_BASE_URL");
-            if (frontendErr == null) frontendErr = "http://localhost:3000/login";
-            // Optionally append ?tokenExpired or show error page
+            // Token expired
+            String frontendErr = Optional.ofNullable(System.getenv("FRONTEND_BASE_URL"))
+                    .orElse("https://mood-planner-ui.vercel.app" + "/login");
             return ResponseEntity.status(HttpStatus.FOUND)
                     .location(URI.create(frontendErr + "?token=expired"))
                     .build();
         } catch (Exception ex) {
-            // invalid token or other error
-            String frontendErr = System.getenv("FRONTEND_BASE_URL");
-            if (frontendErr == null) frontendErr = "http://localhost:3000/login";
+            // Invalid token or other error
+            ex.printStackTrace();
+            String frontendErr = Optional.ofNullable(System.getenv("FRONTEND_BASE_URL"))
+                    .orElse("https://mood-planner-ui.vercel.app" + "/login");
             return ResponseEntity.status(HttpStatus.FOUND)
                     .location(URI.create(frontendErr + "?token=invalid"))
                     .build();
         }
     }
+
 
 
     @PostMapping("/register")

@@ -34,6 +34,7 @@
 
 package net.engineer.moodPlanner.service;
 
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -44,14 +45,26 @@ import java.util.Map;
 @Service
 public class EmailService {
 
+
+
+
     @Value("${SENDGRID_API_KEY}")
     private String sendGridApiKey;
 
     @Value("${SPRING_MAIL_FROM}")
     private String fromEmail;
 
+    /**
+     * Send verification email via SendGrid REST API
+     * @param to    recipient email
+     * @param link  verification link
+     */
     public void sendVerificationEmail(String to, String link) {
         try {
+            if (fromEmail == null || fromEmail.isEmpty()) {
+                throw new RuntimeException("From email is not configured. Set SPRING_MAIL_FROM in your env.");
+            }
+
             String sendGridUrl = "https://api.sendgrid.com/v3/mail/send";
 
             RestTemplate restTemplate = new RestTemplate();
@@ -59,6 +72,7 @@ public class EmailService {
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.setBearerAuth(sendGridApiKey);
 
+            // Build SendGrid payload
             Map<String, Object> body = Map.of(
                     "personalizations", new Object[]{
                             Map.of("to", new Object[]{Map.of("email", to)})
@@ -67,7 +81,9 @@ public class EmailService {
                     "subject", "Verify your MoodPlanner account",
                     "content", new Object[]{
                             Map.of("type", "text/html",
-                                    "value", "<p>Click <a href='" + link + "'>here</a> to verify your account.</p>")
+                                    "value", "<p>Hello,</p>" +
+                                            "<p>Click <a href='" + link + "'>here</a> to verify your account.</p>" +
+                                            "<p>If you did not register, ignore this email.</p>")
                     }
             );
 
@@ -75,12 +91,21 @@ public class EmailService {
             ResponseEntity<String> response = restTemplate.exchange(sendGridUrl, HttpMethod.POST, entity, String.class);
 
             if (!response.getStatusCode().is2xxSuccessful()) {
-                throw new RuntimeException("SendGrid API failed: " + response.getStatusCode());
+                throw new RuntimeException("SendGrid API failed: " + response.getStatusCode() +
+                        " - " + response.getBody());
             }
+
+            System.out.println("Verification email sent to: " + to);
 
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("Failed to send verification email via SendGrid API", e);
         }
     }
+
+//    @PostConstruct
+//    public void init() {
+//        System.out.println("Loaded fromEmail: " + fromEmail);
+//    }
+
 }

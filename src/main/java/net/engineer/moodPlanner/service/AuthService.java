@@ -58,33 +58,47 @@ public class AuthService {
             throw new RuntimeException("Email already exists");
         }
 
-        // Hash the password now (store hash in token, NOT raw password)
+        // Hash the password
         String passwordHash = encoder.encode(rawPassword);
 
         // roles string
         String rolesStr = admin ? "ADMIN" : "USER";
 
-        // Create a signed token containing the user data (expires automatically)
-        String token = tokenService.createVerificationToken(
-                username, email, passwordHash, rolesStr, mood, occupation, ageGroup, workTime, gender
-        );
+        // SAVE USER IN DB WITH VERIFIED = FALSE
+        User user = new User();
+        user.setUserName(username);
+        user.setEmail(email);
+        user.setPassword(passwordHash);
+        user.setRoles(Set.of(admin ? Role.ADMIN : Role.USER));
+        user.setMood(mood);
+        user.setOccupation(occupation);
+        user.setAgeGroup(ageGroup);
+        user.setWorkTime(workTime);
+        user.setGender(gender);
+        user.setVerified(false);
+        repo.save(user);
 
-        // Build verification link (use your backend host)
-        String backendVerifyUrl = System.getenv("BACKEND_BASE_URL"); // e.g., https://api.yoursite.com
+        // Create verification token (can include user id/email)
+        String token = tokenService.createVerificationToken(username, email, passwordHash,
+                rolesStr, mood, occupation, ageGroup, workTime, gender);
+
+        // Build verification link
+        String backendVerifyUrl = System.getenv("BACKEND_BASE_URL");
         if (backendVerifyUrl == null) backendVerifyUrl = "https://moodplanner.onrender.com";
         String verifyLink = backendVerifyUrl + "/auth/verify?token=" + token;
 
-        // Send email. If email sending fails, registration aborted and user not saved.
+        // Send email. If fails, optionally mark user deleted or keep unverified
         try {
             emailService.sendVerificationEmail(email, verifyLink);
         } catch (Exception ex) {
-            // log and rethrow (do not save user)
             ex.printStackTrace();
-            throw new RuntimeException("Failed to send verification email, registration aborted", ex);
+            // Optionally: repo.delete(user); // undo save if email fails
+            throw new RuntimeException("Failed to send verification email", ex);
         }
 
-        // SUCCESS: email sent and user not saved yet (we wait for that /verify call)
+        // SUCCESS: user saved, email sent
     }
+
 
 
 
