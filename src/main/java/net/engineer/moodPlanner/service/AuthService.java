@@ -136,15 +136,12 @@ public class AuthService {
         u.setVerified(false);
 
         try {
-            // 🔹 Send verification email
             emailService.sendVerificationEmail(email, token);
-
-            // 🔹 Save user only if email sent successfully
             repo.save(u);
-
-        } catch (MessagingException e) {
+        } catch (Exception e) { // MessagingException ya koi bhi Runtime exception
             throw new RuntimeException("Failed to send verification email. Registration aborted.", e);
         }
+
     }
 
 
