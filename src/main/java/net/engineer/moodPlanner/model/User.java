@@ -47,6 +47,9 @@ public class User {
 
     private String verificationToken;
 
+    public void setVerificationToken(String verificationToken) {
+        this.verificationToken = verificationToken;
+    }
 
 
 }

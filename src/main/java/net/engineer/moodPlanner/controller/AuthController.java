@@ -14,6 +14,7 @@ import net.engineer.moodPlanner.service.AuthService;
 import net.engineer.moodPlanner.service.ScheduleService;
 import net.engineer.moodPlanner.service.TokenService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -22,6 +23,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.util.*;
+import org.springframework.http.HttpHeaders;
+
 
 @RestController
 @RequestMapping("/auth")
@@ -45,48 +48,29 @@ public class AuthController {
     @Autowired
     private TokenService tokenService;
 
-    @GetMapping("/auth/verify")
-    public ResponseEntity<Void> verifyUser(@RequestParam String token) {
-        try {
-            // Decode JWT token
-            DecodedJWT decoded = tokenService.verifyToken(token);
-            String email = decoded.getClaim("email").asString();
+    @Value("${FRONTEND_BASE_URL}")
+    private String frontendBaseUrl;
 
-            // Fetch user from DB
-            User user = repo.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("User not found. Please register first."));
+    @CrossOrigin(origins = "https://mood-planner-ui.vercel.app")
+    @GetMapping("/verify")
+    public ResponseEntity<String> verifyUser(@RequestParam String token) {
+        Optional<User> userOpt = repo.findByVerificationToken(token);
 
-            // Mark user as verified if not already
-            if (!user.isVerified()) {
-                user.setVerified(true);
-                repo.save(user);
-            }
-
-            // Redirect to frontend login page
-            String frontendLogin = System.getenv("FRONTEND_BASE_URL");
-            if (frontendLogin == null) frontendLogin = "https://mood-planner-ui.vercel.app";
-
-            return ResponseEntity.status(HttpStatus.FOUND)
-                    .location(URI.create(frontendLogin + "/login"))
-                    .build();
-
-        } catch (TokenExpiredException ex) {
-            // Token expired
-            String frontendErr = Optional.ofNullable(System.getenv("FRONTEND_BASE_URL"))
-                    .orElse("https://mood-planner-ui.vercel.app" + "/login");
-            return ResponseEntity.status(HttpStatus.FOUND)
-                    .location(URI.create(frontendErr + "?token=expired"))
-                    .build();
-        } catch (Exception ex) {
-            // Invalid token or other error
-            ex.printStackTrace();
-            String frontendErr = Optional.ofNullable(System.getenv("FRONTEND_BASE_URL"))
-                    .orElse("https://mood-planner-ui.vercel.app" + "/login");
-            return ResponseEntity.status(HttpStatus.FOUND)
-                    .location(URI.create(frontendErr + "?token=invalid"))
-                    .build();
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            user.setVerified(true);
+            user.setVerificationToken(null);
+            repo.save(user);
+            return ResponseEntity.ok("Email verified successfully!");
         }
+
+        return ResponseEntity.badRequest().body("Invalid or expired token!");
     }
+
+
+
+
+
 
 
 

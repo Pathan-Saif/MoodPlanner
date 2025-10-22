@@ -20,6 +20,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @Service
@@ -51,57 +53,6 @@ public class AuthService {
     private TokenService tokenService;
 
 
-    public void register(String username, String email, String rawPassword, boolean admin,
-                         String mood, String occupation, String ageGroup, String workTime, String gender) {
-
-        if (repo.existsByEmail(email)) {
-            throw new RuntimeException("Email already exists");
-        }
-
-        // Hash the password
-        String passwordHash = encoder.encode(rawPassword);
-
-        // roles string
-        String rolesStr = admin ? "ADMIN" : "USER";
-
-        // SAVE USER IN DB WITH VERIFIED = FALSE
-        User user = new User();
-        user.setUserName(username);
-        user.setEmail(email);
-        user.setPassword(passwordHash);
-        user.setRoles(Set.of(admin ? Role.ADMIN : Role.USER));
-        user.setMood(mood);
-        user.setOccupation(occupation);
-        user.setAgeGroup(ageGroup);
-        user.setWorkTime(workTime);
-        user.setGender(gender);
-        user.setVerified(false);
-        repo.save(user);
-
-        // Create verification token (can include user id/email)
-        String token = tokenService.createVerificationToken(username, email, passwordHash,
-                rolesStr, mood, occupation, ageGroup, workTime, gender);
-
-        // Build verification link
-        String backendVerifyUrl = System.getenv("BACKEND_BASE_URL");
-        if (backendVerifyUrl == null) backendVerifyUrl = "https://moodplanner.onrender.com";
-        String verifyLink = backendVerifyUrl + "/auth/verify?token=" + token;
-
-        // Send email. If fails, optionally mark user deleted or keep unverified
-        try {
-            emailService.sendVerificationEmail(email, verifyLink);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            // Optionally: repo.delete(user); // undo save if email fails
-            throw new RuntimeException("Failed to send verification email", ex);
-        }
-
-        // SUCCESS: user saved, email sent
-    }
-
-
-
-
 //    public void register(String username, String email, String rawPassword, boolean admin,
 //                         String mood, String occupation, String ageGroup, String workTime, String gender) {
 //
@@ -109,33 +60,93 @@ public class AuthService {
 //            throw new RuntimeException("Email already exists");
 //        }
 //
-//        User u = new User();
-//        u.setUserName(username);
-//        u.setEmail(email);
-//        u.setPassword(encoder.encode(rawPassword));
-//        Set<Role> roles = new HashSet<>();
-//        roles.add(admin ? Role.ADMIN : Role.USER);
-//        u.setRoles(roles);
-//        u.setMood(mood);
-//        u.setOccupation(occupation);
-//        u.setAgeGroup(ageGroup);
-//        u.setWorkTime(workTime);
-//        u.setGender(gender);
+//        // Hash the password
+//        String passwordHash = encoder.encode(rawPassword);
 //
-//        String token = UUID.randomUUID().toString();
-//        u.setVerificationToken(token);
-//        u.setVerified(false);
+//        // roles string
+//        String rolesStr = admin ? "ADMIN" : "USER";
 //
-//        // Send email first, save only if sending succeeds
+//        // SAVE USER IN DB WITH VERIFIED = FALSE
+//        User user = new User();
+//        user.setUserName(username);
+//        user.setEmail(email);
+//        user.setPassword(passwordHash);
+//        user.setRoles(Set.of(admin ? Role.ADMIN : Role.USER));
+//        user.setMood(mood);
+//        user.setOccupation(occupation);
+//        user.setAgeGroup(ageGroup);
+//        user.setWorkTime(workTime);
+//        user.setGender(gender);
+//        user.setVerified(false);
+//        repo.save(user);
+//
+//        // Create verification token (can include user id/email)
+//        String token = tokenService.createVerificationToken(username, email, passwordHash,
+//                rolesStr, mood, occupation, ageGroup, workTime, gender);
+//
+//        // Build verification link
+//        String backendVerifyUrl = System.getenv("BACKEND_BASE_URL");
+//        if (backendVerifyUrl == null) backendVerifyUrl = "https://moodplanner.onrender.com";
+//
+//        String verifyLink = backendVerifyUrl + "/auth/verify?token=" + token;
+//
+//
+//
+//
+//        // Send email. If fails, optionally mark user deleted or keep unverified
 //        try {
-//            emailService.sendVerificationEmail(email, token); // throws MessagingException on failure
-//            repo.save(u);  // only save after successful send
-//        } catch (MessagingException e) {
-//            // log and rethrow or return a meaningful response to client
-//            // do not save the user
-//            throw new RuntimeException("Failed to send verification email. Registration aborted.", e);
+//            emailService.sendVerificationEmail(email, verifyLink);
+//        } catch (Exception ex) {
+//            ex.printStackTrace();
+//            // Optionally: repo.delete(user); // undo save if email fails
+//            throw new RuntimeException("Failed to send verification email", ex);
 //        }
+//
+//        // SUCCESS: user saved, email sent
 //    }
+
+
+
+
+    public void register(String username, String email, String rawPassword, boolean admin,
+                         String mood, String occupation, String ageGroup, String workTime, String gender) {
+
+        if (repo.existsByEmail(email)) {
+            throw new RuntimeException("Email already exists");
+        }
+
+        User u = new User();
+        u.setUserName(username);
+        u.setEmail(email);
+        u.setPassword(encoder.encode(rawPassword));
+
+        Set<Role> roles = new HashSet<>();
+        roles.add(admin ? Role.ADMIN : Role.USER);
+        u.setRoles(roles);
+
+        u.setMood(mood);
+        u.setOccupation(occupation);
+        u.setAgeGroup(ageGroup);
+        u.setWorkTime(workTime);
+        u.setGender(gender);
+
+        // 🔹 Create verification token
+        String token = UUID.randomUUID().toString();
+        u.setVerificationToken(token);
+        u.setVerified(false);
+
+        try {
+            // 🔹 Send verification email
+            emailService.sendVerificationEmail(email, token);
+
+            // 🔹 Save user only if email sent successfully
+            repo.save(u);
+
+        } catch (MessagingException e) {
+            throw new RuntimeException("Failed to send verification email. Registration aborted.", e);
+        }
+    }
+
 
 
 
