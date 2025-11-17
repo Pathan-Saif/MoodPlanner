@@ -134,6 +134,15 @@ public class ScheduleService {
     }
 
 
+    public Task getTaskDetails(String title) {
+        // MoodRulesEngine se saare tasks fetch karo
+        List<Task> allTasks = MoodRulesEngine.getAllTasks(); // ye method bhi banana padega
+
+        return allTasks.stream()
+                .filter(t -> t.getTitle().equalsIgnoreCase(title))
+                .findFirst()
+                .orElse(null);
+    }
 
 
 }

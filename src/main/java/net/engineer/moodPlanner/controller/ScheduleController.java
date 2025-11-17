@@ -227,4 +227,17 @@ public class ScheduleController {
     }
 
 
+    @GetMapping("/task/details")
+    public ResponseEntity<?> getTaskDetails(@RequestParam String title) {
+
+        Task task = scheduleService.getTaskDetails(title);
+
+        if (task == null) {
+            return ResponseEntity.status(404).body("Task not found");
+        }
+
+        return ResponseEntity.ok(task);
+    }
+
+
 }
