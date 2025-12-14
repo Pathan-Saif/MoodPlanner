@@ -8,6 +8,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import net.engineer.moodPlanner.ai.TaskAIScorer;
 
 public class MoodRulesEngine {
 
@@ -185,7 +186,7 @@ public class MoodRulesEngine {
                         "Exhale 4 sec",
                         "Repeat 5 times"
                 )),
-                new Task("Morning yoga", "8:00 AM", Arrays.asList(
+                new Task("Morning Exercise", "8:00 AM", Arrays.asList(
                         "Basic stretches",
                         "Cat-cow pose",
                         "Child pose",
@@ -475,10 +476,13 @@ public class MoodRulesEngine {
 
         String moodKey = user.getMood() != null ? user.getMood().toLowerCase() : "default";
         List<Task> moodTasks = moodTaskPool.getOrDefault(moodKey, moodTaskPool.get("default"));
-        tasks.addAll(pickRandom(moodTasks, 5));
+        // Step 1: rule-based candidates
+        List<Task> candidates = pickRandom(moodTasks, 10);
+        // Step 2: AI-assisted ranking
+        tasks.addAll(TaskAIScorer.rankTasks(user, candidates, 5));
+
 
         // 2. Occupation pool (5 → 2)
-
         occupationTaskPool.put("engineer", Arrays.asList(
                 new Task("Review technical notes", "8:00 PM", Arrays.asList(
                         "Open your notebook or docs",
@@ -710,10 +714,11 @@ public class MoodRulesEngine {
 
         String occKey = user.getOccupation() != null ? user.getOccupation().toLowerCase() : "default";
         List<Task> occTasks = occupationTaskPool.getOrDefault(occKey, occupationTaskPool.get("default"));
-        tasks.addAll(pickRandom(occTasks, 2));
+        candidates = pickRandom(occTasks, 5);
+        tasks.addAll(TaskAIScorer.rankTasks(user, candidates, 2));
+
 
         // 3. AgeGroup pool (5 → 2)
-
         ageGroupTaskPool.put("10 to 17", Arrays.asList(
                 new Task("Play outdoor sports", "5:00 PM", Arrays.asList(
                         "Pick your favorite sport",
@@ -829,7 +834,7 @@ public class MoodRulesEngine {
         ));
 
         ageGroupTaskPool.put("41 to 60", Arrays.asList(
-                new Task("Yoga", "6:00 AM", Arrays.asList(
+                new Task("Exercise", "6:00 AM", Arrays.asList(
                         "Spread yoga mat",
                         "Start with breathing",
                         "Do simple asanas",
@@ -905,90 +910,20 @@ public class MoodRulesEngine {
         ));
 
 
-        if (ageGroupTaskPool.containsKey(user.getAgeGroup().toLowerCase())) {
-            tasks.addAll(pickRandom(ageGroupTaskPool.get(user.getAgeGroup().toLowerCase()), 2));
+        if (user.getAgeGroup() != null &&
+                ageGroupTaskPool.containsKey(user.getAgeGroup().toLowerCase())) {
+
+            List<Task> ageTasks = ageGroupTaskPool.get(user.getAgeGroup().toLowerCase());
+
+            // reuse existing candidates variable
+            candidates = pickRandom(ageTasks, 5);
+
+            tasks.addAll(TaskAIScorer.rankTasks(user, candidates, 2));
         }
 
-        // 4. WorkTime pool (5 → 2)
-//        String workTime = user.getWorkTime();
-//        if (workTime != null && workTime.contains("to")) {
-//            try {
-//                String[] times = workTime.split(" to ");
-//                int startHour = Integer.parseInt(times[0].trim());
-//                int endHour = Integer.parseInt(times[1].replaceAll("[^0-9]", "").trim());
-//
-//                // Adjust morning tasks based on work start time
-//                if (startHour > 9) {
-//                    tasks.add(new Task(
-//                            "Leisurely morning routine",
-//                            "7:30 AM - 8:30 AM",
-//                            List.of(
-//                                    "Wake up peacefully",
-//                                    "Drink warm water",
-//                                    "Light stretching for 5–10 min",
-//                                    "Enjoy a slow healthy breakfast",
-//                                    "Plan the day's priorities"
-//                            )
-//                    ));
-//                } else if (startHour < 8) {
-//                    tasks.add(new Task(
-//                            "Quick morning preparation",
-//                            "6:00 AM - 6:30 AM",
-//                            List.of(
-//                                    "Wake up quickly",
-//                                    "Splash water on face",
-//                                    "Prepare a simple breakfast",
-//                                    "Get ready for work",
-//                                    "Review today’s tasks"
-//                            )
-//                    ));
-//                }
-//
-//                // Adjust evening tasks based on work end time
-//                if (endHour > 17) {
-//                    tasks.add(new Task(
-//                            "Relaxing evening activity",
-//                            "8:00 PM - 9:00 PM",
-//                            List.of(
-//                                    "Take a warm shower",
-//                                    "Relax with soft music",
-//                                    "Light dinner",
-//                                    "10 minutes meditation",
-//                                    "Prepare for sleep"
-//                            )
-//                    ));
-//                } else if (endHour < 16) {
-//                    tasks.add(new Task(
-//                            "Afternoon personal project",
-//                            "4:00 PM - 5:00 PM",
-//                            List.of(
-//                                    "Set project goal",
-//                                    "Research or outline tasks",
-//                                    "Execute planned work",
-//                                    "Take notes of progress",
-//                                    "Plan next steps"
-//                            )
-//                    ));
-//                }
-//
-//            } catch (NumberFormatException e) {
-//                tasks.add(new Task(
-//                        "Work-life balance time",
-//                        "6:00 PM - 7:00 PM",
-//                        List.of(
-//                                "Relax for 10 minutes",
-//                                "Organize workspace",
-//                                "Quick walk",
-//                                "Light snack",
-//                                "Prepare for tomorrow"
-//                        )
-//                ));
-//            }
-//        }
 
 
-//        Map<String, List<Task>> workTimeTaskPool = new HashMap<>();
-
+        // Map<String, List<Task>> workTimeTaskPool = new HashMap<>();
         workTimeTaskPool.put("early_shift", Arrays.asList(
                 new Task("Early morning focus session", "5:30 AM", Arrays.asList(
                         "Wake up calmly",
@@ -1094,7 +1029,7 @@ public class MoodRulesEngine {
                         "Drink little water after",
                         "Sit comfortably for 10 mins"
                 )),
-                new Task("Late-night unwind", "12:00 AM", Arrays.asList(
+                new Task("Late-night unwind", "11:59 PM", Arrays.asList(
                         "Turn off notifications",
                         "Do breathing exercise",
                         "Keep room dim",
@@ -1103,14 +1038,20 @@ public class MoodRulesEngine {
                 ))
         ));
 
-        if (workTimeTaskPool.containsKey(user.getWorkTime().toLowerCase())) {
-            tasks.addAll(pickRandom(workTimeTaskPool.get(user.getWorkTime().toLowerCase()), 2));
+        if (user.getWorkTime() != null &&
+                workTimeTaskPool.containsKey(user.getWorkTime().toLowerCase())) {
+
+            List<Task> workTimeTasks = workTimeTaskPool.get(user.getWorkTime().toLowerCase());
+
+            // reuse existing candidates variable
+            candidates = pickRandom(workTimeTasks, 5);
+
+            tasks.addAll(TaskAIScorer.rankTasks(user, candidates, 2));
         }
 
 
 
         // 5. Gender pool (5 → 2)
-
         genderTaskPool.put("male", Arrays.asList(
                 new Task("Strength workout", "6:30 AM", Arrays.asList(
                         "Warm-up stretches for 5 minutes",
@@ -1150,7 +1091,7 @@ public class MoodRulesEngine {
         ));
 
         genderTaskPool.put("female", Arrays.asList(
-                new Task("Yoga", "6:30 AM", Arrays.asList(
+                new Task("Exercise", "6:30 AM", Arrays.asList(
                         "Deep breathing warm-up",
                         "Basic yoga poses (sun salutation)",
                         "Balance posture practice",
@@ -1226,8 +1167,14 @@ public class MoodRulesEngine {
         ));
 
 
-        if (genderTaskPool.containsKey(user.getGender().toLowerCase())) {
-            tasks.addAll(pickRandom(genderTaskPool.get(user.getGender().toLowerCase()), 2));
+        if (user.getGender() != null &&
+                genderTaskPool.containsKey(user.getGender().toLowerCase())) {
+
+            List<Task> genderTasks = genderTaskPool.get(user.getGender().toLowerCase());
+
+            // reuse existing candidates variable
+            candidates = pickRandom(genderTasks, 5);
+            tasks.addAll(TaskAIScorer.rankTasks(user, candidates, 2));
         }
 
         // --- Remove conflicts & sort ---
